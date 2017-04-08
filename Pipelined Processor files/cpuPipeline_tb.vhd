@@ -54,11 +54,11 @@ test_process : process
 	
 	report "STARTING SIMULATION \n";
 	
-		wait for 1 * clk_period;
-		cpuStall <= '1';
-		wait for 10 * clk_period;
-		cpuStall <= '0';
-		wait for 10 * clk_period;
+		--wait for 1 * clk_period;
+		--cpuStall <= '1';
+		--wait for 10 * clk_period;
+		--cpuStall <= '0';
+		--wait for 10 * clk_period;
 		--cpuStall <= '1'; 
 		--wait for 10 * clk_period;
 		--cpuStall <= '0';

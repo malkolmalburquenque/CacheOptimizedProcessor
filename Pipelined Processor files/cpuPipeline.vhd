@@ -389,11 +389,15 @@ port map (ctrl_memtoreg_in => memtoReg,
 
 
 process(clk)
+variable stallPeriod : integer := 10;
 begin
-if (cpuStall = '0') then
+
+if (stallPeriod = 0) then
 clock <= clk;
+stallPeriod := 10;
 else
 clock <= '0';
+stallPeriod := stallPeriod - 1;
 end if;
 end process;
 
