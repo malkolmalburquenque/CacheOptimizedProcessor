@@ -85,7 +85,7 @@ begin
 		if control = '0' then
 			m_write <= s_write_data;
 			m_read <= s_read_data;
-			m_addr <= s_addr_data; 
+			m_addr <= s_addr_data + 1024; 
 			s_readdata_data <= m_readdata;
 			m_writedata <= s_writedata_data;
 		elsif control = '1' then

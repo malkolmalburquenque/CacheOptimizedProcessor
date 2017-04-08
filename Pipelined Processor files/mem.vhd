@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 entity mem is
 GENERIC(
 	ram_size : INTEGER := 8192; 
-	mem_delay : time := 10 ns;
+	mem_delay : time := 120 ns;
 	clock_period : time := 1 ns
 );
 port (clk: in std_logic;
@@ -33,6 +33,7 @@ port (clk: in std_logic;
 	memread: OUT STD_LOGIC := '0';
 	readdata: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
 	cpuStall : IN STD_LOGIC;
+	cpuStall_out: OUT STD_LOGIC;
 	waitrequest: IN STD_LOGIC
 	
   );

@@ -220,15 +220,22 @@ begin
 	WAIT FOR clk_period;                                           
 	-- Attempt to write to cache                                     	
 	
+	
+	s_writedata_data <= x"0000ff01";
+	s_addr_data <= "11111111111111111111111111111111";  
+	s_read_data <= '0';                                                       
+	s_write_data <= '1'; 
+	
+	wait until rising_edge(s_waitrequest_data);
 	-- INVALID  - WRITE MISS CLEAN and  VALID - READ HIT (CLEAN/DIRTY)  
 	s_addr_data <= "11111111111111111111111101111111"; 
 	s_addr_instruct <= "11111111111111111111111001111001"; 
-	s_writedata_instruct <= x"0000ff00";
+	s_writedata_data <= x"0000ff00";
                            
-	s_read_data <= '1';                                                       
-	s_write_data <= '0'; 
-	s_read_instruct <= '0';                                                       
-	s_write_instruct <= '1'; 	
+	s_read_data <= '0';                                                       
+	s_write_data <= '1'; 
+	s_read_instruct <= '1';                                                       
+	s_write_instruct <= '0'; 	
 	
 	wait until (rising_edge(s_waitrequest_data) or rising_edge(s_waitrequest_instruct));
 	
