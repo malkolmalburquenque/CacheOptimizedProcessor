@@ -6,6 +6,7 @@ entity cpuPipeline is
 port 
 (
 clk : in std_logic;
+stall : in std_logic;
 reset : in std_logic;
 four : INTEGER;
 writeToRegisterFile : in std_logic := '0';
@@ -108,8 +109,8 @@ end component;
 COMPONENT memory IS
 	GENERIC(
 		ram_size : INTEGER := 8192;
-		mem_delay : time := 10 ns;
-		clock_period : time := 1 ns
+		mem_delay : time := 120 ns;
+		clock_period : time := 10 ns
 	);
 	PORT (
 		clock: IN STD_LOGIC;
@@ -146,10 +147,11 @@ port (clk: in std_logic;
 	
 	--Memory signals
 	writedata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-	address: OUT INTEGER RANGE 0 TO 32768 -1;
+	address: OUT INTEGER RANGE 0 TO 8192 -1;
 	memwrite: OUT STD_LOGIC := '0';
 	memread: OUT STD_LOGIC := '0';
 	readdata: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
+	cpuStall : IN STD_LOGIC ;
 	waitrequest: IN STD_LOGIC
 	
   );
@@ -168,12 +170,16 @@ port (ctrl_memtoreg_in: in std_logic;
 );
  end component;
 
+ -- CLOCK SIGNAL 
+signal clock : std_logic := clk;
  
  -- STALL SIGNALS 
 signal IDEXStructuralStall : std_logic;
 signal EXMEMStructuralStall : std_logic;
 signal structuralStall : std_logic;
 signal pcStall : std_logic;
+signal cpuStall : std_logic := '0';
+
 -- TEST SIGNALS 
 signal muxInput : STD_LOGIC_VECTOR(31 downto 0) := "00000000000000000000000000000000";
 signal selectInput : std_logic := '1';
@@ -244,7 +250,7 @@ begin
 
 IFS : instructionFetchStage
 port map(
-	clk => clk,
+	clk => clock,
 	muxInput0 => EXMEMaluOutput,
 	selectInputs => EXMEMBranch,
 	four => fourInt,
@@ -256,7 +262,7 @@ port map(
 -- DECODE STAGE 
 CT : controller 
 port map(
-	clk => clk,
+	clk => clock,
 	opcode => opcodeInput, 
 	funct => functInput,
 	branch => zeroOutput,
@@ -277,7 +283,7 @@ port map(
 
 RegisterFile : register_file
 port map (
-	clock => clk,
+	clock => clock,
 	rs => rs,
 	rt => rt,
 	write_enable => write_enable,
@@ -329,7 +335,7 @@ result => zeroOutput
 
 memStage : mem
 port map (
-	clk =>clk,
+	clk =>clock,
 	-- Control lines
 	ctrl_write => EXMEMMemWriteO,
 	ctrl_read => EXMEMMemReadO,
@@ -353,12 +359,13 @@ port map (
 	memwrite => MEMmemwrite,
 	memread  => MEMmemread,
 	readdata => MEMreaddata,
+	cpuStall => cpuStall,
 	waitrequest => MEMwaitrequest
 );
 
 memMemory: memory
 port map (
-	clock => clk,
+	clock => clock,
 	writedata => MEMwritedata,
 	address => MEMaddress,
 	memwrite => MEMmemwrite,
@@ -380,6 +387,16 @@ port map (ctrl_memtoreg_in => memtoReg,
 	write_addr_out => WBrd
 );
 
+
+process(clk)
+begin
+if (cpuStall = '0') then
+clock <= clk;
+else
+clock <= '0';
+end if;
+end process;
+
 process(EXMEMStructuralStall)
 begin
 if EXMEMStructuralStall = '1' then 
@@ -390,10 +407,11 @@ end if;
 
 end process;
 
-process (clk)
+process (clock)
 begin
 
-if (clk'event and clk = '1') then
+if (clock'event and clock = '1') then
+
 --PIPELINED VALUE 
 --IFID 
 IFIDaddress <= address;
@@ -470,5 +488,7 @@ shamnt <= IFIDinstruction(10 downto 6);
 immediate <= IFIDinstruction(15 downto 0);
 -- MIGHT NEED TO PUT WRITE ENABLE HERE LATER 
 -- AND JUMP ADDRESS HERE 
+
+cpuStall <= stall;
 
 end cpuPipeline_arch;

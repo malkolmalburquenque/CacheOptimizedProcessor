@@ -32,6 +32,7 @@ port (clk: in std_logic;
 	memwrite: OUT STD_LOGIC := '0';
 	memread: OUT STD_LOGIC := '0';
 	readdata: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
+	cpuStall : IN STD_LOGIC;
 	waitrequest: IN STD_LOGIC
 	
   );
@@ -48,7 +49,7 @@ begin
 
 process (clk)
 begin
-	if (clk'event and clk = '1') then
+	if (clk'event and clk = '1' and cpuStall = '0') then
 		write_addr_out <= write_addr_next;
 		mem_data_out <= mem_data_next;
 		alu_out <= alu_next;
