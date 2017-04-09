@@ -5,7 +5,7 @@
 #add $0, $0, $0
 #add $0, $0, $0
 #add $0, $0, $0
-#so far we are at 4I & 4D. Target is 16I & 16D.
+
 
 #Target ~equal instruction calls to data calls
 
@@ -45,11 +45,11 @@ add $16, $0, $0
 add $0, $0, $0
 add $0, $0, $0
 add $0, $0, $0
-sll $6, $5, 1 # R6 = 12
+sll $6, $3, 1 # R6 = 6
 add $0, $0, $0
 add $0, $0, $0
 add $0, $0, $0
-srl $7, $6, 2 # R7 = 3
+srl $7, $6, 1 # R7 = 3
 add $0, $0, $0
 add $0, $0, $0
 add $0, $0, $0

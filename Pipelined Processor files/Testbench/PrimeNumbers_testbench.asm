@@ -1,9 +1,9 @@
 #this program checks how many prime numbers there are less than 10000
-#result is in register2
+
 #The following 3 lines are implemented repeatedly to avoid data hazard, as it has not been implemented
-#add $0, $0, $0
-#add $0, $0, $0
-#add $0, $0, $0
+add $0, $0, $0
+add $0, $0, $0
+add $0, $0, $0
 
 #initialize
 add $1, $0, 0 #R1 is our answer
