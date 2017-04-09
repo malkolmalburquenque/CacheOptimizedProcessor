@@ -20,7 +20,9 @@ ENTITY newMemory IS
 		memread: IN STD_LOGIC;
 		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
 		waitrequest: OUT STD_LOGIC;
-		writeToText : IN STD_LOGIC
+		writeToText : IN STD_LOGIC;
+		
+		control: in std_logic
 	);
 END newMemory;
 
@@ -39,8 +41,16 @@ BEGIN
 	variable row : line;
 	variable rowData : std_logic_vector(31 downto 0);
 	variable rowCounter : integer:=0;
+	variable newAddress : integer;
 	
 	BEGIN
+	
+		if control = '0' then
+			newAddress := address + 1024;
+		else
+			newAddress := address / 4;
+		end if;
+	
 		--This is a cheap trick to initialize the SRAM in simulation
 		IF(now < 1 ps)THEN
 			file_open(f,"program.txt.",READ_MODE);
@@ -59,9 +69,9 @@ BEGIN
 		--This is the actual synthesizable SRAM block
 		IF (clock'event AND clock = '1') THEN
 			IF (memwrite = '1') THEN
-				ram_block(address) <= writedata;
+				ram_block(newAddress) <= writedata;
 			END IF;
-		read_address_reg <= address;
+		read_address_reg <= newAddress;
 		END IF;
 	END PROCESS;
 	readdata <= ram_block(read_address_reg);

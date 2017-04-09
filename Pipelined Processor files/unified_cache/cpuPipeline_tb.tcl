@@ -2,6 +2,7 @@ proc AddWaves {} {
 #TODO
 	;#Add waves we're interested in to the Wave window
     add wave -position end sim:/cpuPipeline_tb/pipeline/clk
+	add wave -position end sim:/cpupipeline_tb/pipeline/clock
 	add wave -position end sim:/cpuPipeline_tb/pipeline/address
 	add wave -position end sim:/cpuPipeline_tb/pipeline/instruction
 	add wave -position end sim:/cpuPipeline_tb/pipeline/ALUOp
@@ -51,6 +52,9 @@ vcom register_file.vhd
 vcom signextender.vhd
 vcom wb.vhd
 vcom zero.vhd
+vcom arbiter.vhd
+vcom cache.vhd
+vcom newMemory.vhd
 
 ;# Start simulation
 vsim cpuPipeline_tb

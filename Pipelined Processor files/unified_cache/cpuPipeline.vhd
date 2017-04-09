@@ -130,7 +130,9 @@ COMPONENT newMemory IS
 		writeToText : IN STD_LOGIC := '0';
 		
 		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-		waitrequest: OUT STD_LOGIC
+		waitrequest: OUT STD_LOGIC;
+		
+		control : in std_logic
 	);
 END COMPONENT;
 
@@ -229,7 +231,9 @@ component arbiter is
 		m_readdata : in std_logic_vector (31 downto 0);
 		m_write : out std_logic;
 		m_writedata : out std_logic_vector (31 downto 0);
-		m_waitrequest : in std_logic
+		m_waitrequest : in std_logic;
+		
+		controlOut : out std_logic
 	);
 end component;
 
@@ -249,6 +253,7 @@ signal stopStall : std_logic_vector (1 downto 0) := "00";
 signal muxInput : STD_LOGIC_VECTOR(31 downto 0) := "00000000000000000000000000000000";
 signal selectInput : std_logic := '1';
 signal fourInt : INTEGER := 4;
+signal controlSig: std_logic;
 
 -- PIPELINE IFID
 --address goes to both IFID and IDEX
@@ -491,7 +496,8 @@ port map (
     memread => m_read,
     writeToText => m_writeToText,
 	readdata => m_readdata,
-    waitrequest => m_waitrequest
+    waitrequest => m_waitrequest,
+	control => controlSig
 );
 
 arb: arbiter
@@ -515,7 +521,9 @@ port map (
 	m_readdata => s_readdata,
 	m_write => s_write,
 	m_writedata => s_writedata,
-	m_waitrequest => s_waitrequest
+	m_waitrequest => s_waitrequest,
+	
+	controlOut => controlSig
 );
 
 
