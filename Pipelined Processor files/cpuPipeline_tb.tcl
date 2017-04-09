@@ -2,6 +2,7 @@ proc AddWaves {} {
 #TODO
 	;#Add waves we're interested in to the Wave window
     add wave -position end sim:/cpuPipeline_tb/pipeline/clk
+	add wave -position end sim:/cpuPipeline_tb/pipeline/clock
 	add wave -position end sim:/cpuPipeline_tb/pipeline/address
 	add wave -position end sim:/cpuPipeline_tb/pipeline/instruction
 	add wave -position end sim:/cpuPipeline_tb/pipeline/ALUOp

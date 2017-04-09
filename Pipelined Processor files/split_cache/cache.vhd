@@ -96,7 +96,7 @@ begin
 			else
 				next_state <= r;
 			end if;
-			
+				
 		when r_memwrite =>
 			if count < 4 and m_waitrequest = '1' and next_state /= r_memread then -- EVICT
 				addr := cache2(index)(133 downto 127) & s_addr (5 downto 0);   -- create new address with last 8 bits of tag  + 7 bits of address

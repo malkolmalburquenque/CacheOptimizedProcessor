@@ -30,7 +30,9 @@ port(
 	m_readdata : in std_logic_vector (31 downto 0);
 	m_write : out std_logic;
 	m_writedata : out std_logic_vector (31 downto 0);
-	m_waitrequest : in std_logic
+	m_waitrequest : in std_logic;
+	
+	stall : out std_logic
 );
 end arbiter;
 architecture arch of arbiter is
@@ -38,6 +40,9 @@ architecture arch of arbiter is
 	signal control: std_logic;
 	signal inUse: std_logic := '0';
 begin
+	
+	
+	stall <= inUse;
 	
 process (m_waitrequest)
 begin
@@ -66,10 +71,10 @@ begin
 	end if;
 	
 	if m_waitrequest'event and m_waitrequest = '1' then
-		if s_write_data = '1' or s_read_data = '1' then
+		if (s_write_data = '1' or s_read_data = '1') and control = '1' then
 			control <= '0';
 			inUse <= '1';
-		elsif s_write_instruct = '1' or s_read_instruct = '1' then
+		elsif (s_write_instruct = '1' or s_read_instruct = '1')and control = '0' then
 			control <= '1';
 			inUse <= '1';
 		else
@@ -85,7 +90,7 @@ begin
 		if control = '0' then
 			m_write <= s_write_data;
 			m_read <= s_read_data;
-			m_addr <= s_addr_data + 1024; 
+			m_addr <= s_addr_data; 
 			s_readdata_data <= m_readdata;
 			m_writedata <= s_writedata_data;
 		elsif control = '1' then

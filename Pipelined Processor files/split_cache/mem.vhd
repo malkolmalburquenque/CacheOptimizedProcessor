@@ -28,7 +28,7 @@ port (clk: in std_logic;
 	
 	--Memory signals
 	writedata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-	address: OUT INTEGER RANGE 0 TO ram_size-1;
+	address: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
 	memwrite: OUT STD_LOGIC := '0';
 	memread: OUT STD_LOGIC := '0';
 	readdata: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
@@ -64,10 +64,7 @@ end process;
 
 
 process (write_addr_in , ctrl_memtoreg_in, ctrl_regwrite_in, alu_in)
-begin
-	memwrite <= '0';
-	memread <= '0';
-	
+begin	
 	--Propogate signals
 	write_addr_next <= write_addr_in;
 	ctrl_memtoreg_next <= ctrl_memtoreg_in;
@@ -83,14 +80,24 @@ begin
 	--Access memory
 	
 	if ctrl_write = '1' then
-		address <= to_integer(unsigned(alu_in));	
+		address <= alu_in;	
 		memwrite <= '1'; 	
 		writedata <= mem_data_in;
 	elsif ctrl_read = '1' then
-		address <= to_integer(unsigned(alu_in));	
+		address <= alu_in;	
 		memread <= '1';
-		
+	end if;
+	
+	
+end process;
+
+process (waitrequest)
+begin
+	if (waitrequest'event and waitrequest = '1') then
+		memwrite <= '0';
+		memread <= '0';
 	end if;
 end process;
+
 mem_data_next <= readdata;
 end behavioral;

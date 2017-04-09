@@ -242,9 +242,6 @@ begin
 	if rising_edge(s_waitrequest_data) then
 	s_read_data <= '0';                                                       
 	s_write_data <= '0';     
-	elsif rising_edge(s_waitrequest_instruct)then
-	s_read_instruct <= '0';                                                       
-	s_write_instruct <= '0';  
 	end if;
 	
 	wait until (rising_edge(s_waitrequest_data) or rising_edge(s_waitrequest_instruct));
@@ -252,9 +249,6 @@ begin
 	if rising_edge(s_waitrequest_data) then
 	s_read_data <= '0';                                                       
 	s_write_data <= '0';     
-	elsif rising_edge(s_waitrequest_instruct)then
-	s_read_instruct <= '0';                                                       
-	s_write_instruct <= '0';  
 	end if;
 	
 	wait for clk_period;

@@ -9,8 +9,8 @@ ENTITY newMemory IS
 	GENERIC(
 	-- might need to change it 
 		ram_size : INTEGER := 8192;
-		mem_delay : time := 120 ns;
-		clock_period : time := 10 ns
+		mem_delay : time := 10 ns;
+		clock_period : time := 1 ns
 	);
 	PORT (
 		clock: IN STD_LOGIC;
@@ -19,7 +19,8 @@ ENTITY newMemory IS
 		memwrite: IN STD_LOGIC;
 		memread: IN STD_LOGIC;
 		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-		waitrequest: OUT STD_LOGIC
+		waitrequest: OUT STD_LOGIC;
+		writeToText : IN STD_LOGIC
 	);
 END newMemory;
 

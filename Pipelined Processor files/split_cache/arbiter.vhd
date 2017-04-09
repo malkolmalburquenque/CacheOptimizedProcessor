@@ -66,10 +66,10 @@ begin
 	end if;
 	
 	if m_waitrequest'event and m_waitrequest = '1' then
-		if s_write_data = '1' or s_read_data = '1' then
+		if (s_write_data = '1' or s_read_data = '1') and control = '1' then
 			control <= '0';
 			inUse <= '1';
-		elsif s_write_instruct = '1' or s_read_instruct = '1' then
+		elsif (s_write_instruct = '1' or s_read_instruct = '1')and control = '0' then
 			control <= '1';
 			inUse <= '1';
 		else
@@ -85,7 +85,7 @@ begin
 		if control = '0' then
 			m_write <= s_write_data;
 			m_read <= s_read_data;
-			m_addr <= s_addr_data; 
+			m_addr <= s_addr_data + 1024; 
 			s_readdata_data <= m_readdata;
 			m_writedata <= s_writedata_data;
 		elsif control = '1' then

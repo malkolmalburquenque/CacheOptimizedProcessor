@@ -6,7 +6,6 @@ entity cpuPipeline is
 port 
 (
 clk : in std_logic;
-stall : in std_logic;
 reset : in std_logic;
 four : INTEGER;
 writeToRegisterFile : in std_logic := '0';
@@ -21,6 +20,7 @@ architecture cpuPipeline_arch of cpuPipeline is
 component instructionFetchStage IS
 	port(
 		clk : in std_logic;
+		globalClk : in std_logic;
 		muxInput0 : in std_logic_vector(31 downto 0);
 		selectInputs : in std_logic;
 		four : in INTEGER;
@@ -28,8 +28,19 @@ component instructionFetchStage IS
 		pcStall : IN STD_LOGIC;
 
 		selectOutput : out std_logic_vector(31 downto 0);
-		instructionMemoryOutput : out std_logic_vector(31 downto 0)
-		);
+		instructionMemoryOutput : out std_logic_vector(31 downto 0);
+		
+		waitrequest: out std_logic;
+		
+			-- CACHE port 
+		Caddr : out integer range 0 to 1024-1;
+		Cread : out std_logic;
+		Creaddata : in std_logic_vector (31 downto 0);
+		Cwrite : out std_logic;
+		Cwritedata : out std_logic_vector (31 downto 0);
+		Cwaitrequest : in std_logic
+
+	);
 		
 	end component;
 		
@@ -106,11 +117,11 @@ port (input_a : in std_logic_vector (31 downto 0);
 end component;
 
 --MEMORY OBJ FOR MEM STAGE
-COMPONENT memory IS
+COMPONENT newMemory IS
 	GENERIC(
 		ram_size : INTEGER := 8192;
-		mem_delay : time := 120 ns;
-		clock_period : time := 10 ns
+		mem_delay : time := 10 ns;
+		clock_period : time := 1 ns
 	);
 	PORT (
 		clock: IN STD_LOGIC;
@@ -147,7 +158,7 @@ port (clk: in std_logic;
 	
 	--Memory signals
 	writedata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-	address: OUT INTEGER RANGE 0 TO 8192 -1;
+	address: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
 	memwrite: OUT STD_LOGIC := '0';
 	memread: OUT STD_LOGIC := '0';
 	readdata: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
@@ -171,59 +182,59 @@ port (ctrl_memtoreg_in: in std_logic;
  end component;
  
  component cache is
-		generic(
-			ram_size : INTEGER := 8192
-		);
-		port(
-			clock : in std_logic;
-			reset : in std_logic;
+	generic(
+		ram_size : INTEGER := 8192
+	);
+	port(
+		clock : in std_logic;
+		reset : in std_logic;
 
-			-- Avalon interface --
-			s_addr : in std_logic_vector (31 downto 0);
-			s_read : in std_logic;
-			s_readdata : out std_logic_vector (31 downto 0);
-			s_write : in std_logic;
-			s_writedata : in std_logic_vector (31 downto 0);
-			s_waitrequest : out std_logic; 
+		-- Avalon interface --
+		s_addr : in std_logic_vector (31 downto 0);
+		s_read : in std_logic;
+		s_readdata : out std_logic_vector (31 downto 0);
+		s_write : in std_logic;
+		s_writedata : in std_logic_vector (31 downto 0);
+		s_waitrequest : out std_logic; 
 
-			m_addr : out integer range 0 to ram_size-1;
-			m_read : out std_logic;
-			m_readdata : in std_logic_vector (31 downto 0);
-			m_write : out std_logic;
-			m_writedata : out std_logic_vector (31 downto 0);
-			m_waitrequest : in std_logic
-		);
-	end component;
-	
-	component arbiter is
-		generic(
-			ram_size : INTEGER := 8192
-		);
-		port(
-			-- Avalon interface --
-			s_addr_data : in integer range 0 to ram_size-1;
-			s_read_data : in std_logic;
-			s_readdata_data : out std_logic_vector (31 downto 0);
-			s_write_data : in std_logic;
-			s_writedata_data : in std_logic_vector (31 downto 0);
-			s_waitrequest_data : out std_logic;
-			
-			s_addr_instruct : in integer range 0 to ram_size-1;
-			s_read_instruct : in std_logic;
-			s_readdata_instruct : out std_logic_vector (31 downto 0);
-			s_write_instruct : in std_logic;
-			s_writedata_instruct : in std_logic_vector (31 downto 0);
-			s_waitrequest_instruct : out std_logic;
-			
-			m_addr : out integer range 0 to ram_size-1;
-			m_read : out std_logic;
-			m_readdata : in std_logic_vector (31 downto 0);
-			m_write : out std_logic;
-			m_writedata : out std_logic_vector (31 downto 0);
-			m_waitrequest : in std_logic
-		);
-	end component;
- 
+		m_addr : out integer range 0 to ram_size-1;
+		m_read : out std_logic;
+		m_readdata : in std_logic_vector (31 downto 0);
+		m_write : out std_logic;
+		m_writedata : out std_logic_vector (31 downto 0);
+		m_waitrequest : in std_logic
+	);
+end component;
+
+component arbiter is
+	generic(
+		ram_size : INTEGER := 8192
+	);
+	port(
+		-- Avalon interface --
+		s_addr_data : in integer range 0 to ram_size-1;
+		s_read_data : in std_logic;
+		s_readdata_data : out std_logic_vector (31 downto 0);
+		s_write_data : in std_logic;
+		s_writedata_data : in std_logic_vector (31 downto 0);
+		s_waitrequest_data : out std_logic;
+		
+		s_addr_instruct : in integer range 0 to ram_size-1;
+		s_read_instruct : in std_logic;
+		s_readdata_instruct : out std_logic_vector (31 downto 0);
+		s_write_instruct : in std_logic;
+		s_writedata_instruct : in std_logic_vector (31 downto 0);
+		s_waitrequest_instruct : out std_logic;
+		
+		m_addr : out integer range 0 to ram_size-1;
+		m_read : out std_logic;
+		m_readdata : in std_logic_vector (31 downto 0);
+		m_write : out std_logic;
+		m_writedata : out std_logic_vector (31 downto 0);
+		m_waitrequest : in std_logic
+	);
+end component;
+
 
  -- CLOCK SIGNAL 
 signal clock : std_logic := clk;
@@ -234,11 +245,13 @@ signal EXMEMStructuralStall : std_logic;
 signal structuralStall : std_logic;
 signal pcStall : std_logic;
 signal cpuStall : std_logic := '0';
+signal stopStall : std_logic;
 
 -- TEST SIGNALS 
 signal muxInput : STD_LOGIC_VECTOR(31 downto 0) := "00000000000000000000000000000000";
 signal selectInput : std_logic := '1';
 signal fourInt : INTEGER := 4;
+signal IFwaitrequest: std_logic;
 
 -- PIPELINE IFID
 --address goes to both IFID and IDEX
@@ -295,24 +308,60 @@ signal memtoReg : std_logic;
 signal regWrite : std_logic;
 
 signal	MEMwritedata : std_logic_vector(31 downto 0);
-signal	MEMaddress : INTEGER;
+signal	MEMaddress : std_logic_vector(31 downto 0);
 signal	MEMmemwrite : STD_LOGIC;
 signal	MEMmemread  : STD_LOGIC;
 signal	MEMreaddata : std_logic_vector(31 downto 0);
 signal	MEMwaitrequest : STD_LOGIC;
+
+--SIGNALS FOR CACHE
+signal m_addr_data : integer range 0 to 8192-1;
+signal m_read_data : std_logic;
+signal m_readdata_data : std_logic_vector (31 downto 0);
+signal m_write_data : std_logic;
+signal m_writedata_data : std_logic_vector (31 downto 0);
+signal m_waitrequest_data : std_logic;
+       
+signal m_addr_instruct : integer range 0 to 8192-1;
+signal m_read_instruct : std_logic;
+signal m_readdata_instruct : std_logic_vector (31 downto 0);
+signal m_write_instruct : std_logic;
+signal m_writedata_instruct : std_logic_vector (31 downto 0);
+signal m_waitrequest_instruct : std_logic;
+
+signal m_addr : integer range 0 to 8192-1;
+signal m_read : std_logic;
+signal m_readdata : std_logic_vector (31 downto 0);
+signal m_write : std_logic;
+signal m_writedata : std_logic_vector (31 downto 0);
+signal m_waitrequest : std_logic; 
+
+signal m_writeToText : std_logic := '0';
+
 
 begin
 
 IFS : instructionFetchStage
 port map(
 	clk => clock,
+	globalClk => clk,
 	muxInput0 => EXMEMaluOutput,
 	selectInputs => EXMEMBranch,
 	four => fourInt,
 	structuralStall => structuralStall,
 	pcStall => pcStall,
 	selectOutput => address,
-	instructionMemoryOutput => instruction
+	instructionMemoryOutput => instruction,
+	
+	waitrequest => IFwaitrequest,
+				-- CACHE port 
+	Caddr => m_addr_instruct,
+	Cread => m_read_instruct,
+	Creaddata => m_readdata_instruct,
+	Cwrite => m_write_instruct,
+	Cwritedata => m_writedata_instruct,
+	Cwaitrequest => m_waitrequest_instruct
+	
 );
 -- DECODE STAGE 
 CT : controller 
@@ -418,17 +467,62 @@ port map (
 	waitrequest => MEMwaitrequest
 );
 
-memMemory: memory
-port map (
-	clock => clock,
-	writedata => MEMwritedata,
-	address => MEMaddress,
-	memwrite => MEMmemwrite,
-	memread  => MEMmemread,
-	writeToText => writeToMemoryFile,
-	readdata => MEMreaddata,
-	waitrequest => MEMwaitrequest
+data: cache
+port map(
+    clock => clk,
+    reset => reset,
+
+    s_addr => MEMaddress,
+    s_read => MEMmemread,
+    s_readdata => MEMreaddata,
+    s_write => MEMmemwrite,
+    s_writedata => MEMwritedata,
+    s_waitrequest => MEMwaitrequest,
+
+    m_addr => m_addr_data,
+    m_read => m_read_data,
+    m_readdata => m_readdata_data,
+    m_write => m_write_data,
+    m_writedata => m_writedata_data,
+    m_waitrequest => m_waitrequest_data
 );
+
+newMem : newMemory
+port map (
+    clock => clk,
+    writedata => m_writedata,
+    address => m_addr,
+    memwrite => m_write,
+    memread => m_read,
+    writeToText => m_writeToText,
+	readdata => m_readdata,
+    waitrequest => m_waitrequest
+);
+
+arb: arbiter
+port map (
+	s_addr_data => m_addr_data, 
+	s_read_data => m_read_data,
+	s_readdata_data => m_readdata_data,
+	s_write_data => m_write_data, 
+	s_writedata_data => m_writedata_data,
+	s_waitrequest_data => m_waitrequest_data,
+	
+	s_addr_instruct => m_addr_instruct, 
+	s_read_instruct => m_read_instruct,
+	s_readdata_instruct => m_readdata_instruct,
+	s_write_instruct => m_write_instruct, 
+	s_writedata_instruct => m_writedata_instruct,
+	s_waitrequest_instruct => m_waitrequest_instruct,
+
+	m_addr => m_addr,
+	m_read => m_read,
+	m_readdata => m_readdata,
+	m_write => m_write,
+	m_writedata => m_writedata,
+	m_waitrequest => m_waitrequest
+);
+
 
 wbStage: wb
 port map (ctrl_memtoreg_in => memtoReg,
@@ -452,6 +546,37 @@ clock <= '0';
 end if;
 end process;
 
+process (IFwaitrequest, MEMwaitrequest, clock)
+begin
+	if cpuStall = '1' then
+		if (IFwaitrequest'event and IFwaitrequest = '1') then
+			if (stopStall = '1') then
+				cpuStall <= '0';
+			else
+				stopStall <= '1';
+			end if;
+		end if;
+		if (EXMEMMemWriteO = '1' or EXMEMMemReadO = '1')then
+			if MEMwaitrequest'event and MEMwaitrequest = '1' then
+				if (stopStall = '1') then
+					cpuStall <= '0';
+				else
+					stopStall <= '1';
+				end if;
+			end if;
+		else
+			if (stopStall = '1') then
+				cpuStall <= '0';
+			else
+				stopStall <= '1';
+			end if;
+		end if;
+	else
+		cpuStall <= '1';
+	end if;
+end process;	
+		
+
 process(EXMEMStructuralStall)
 begin
 if EXMEMStructuralStall = '1' then 
@@ -466,7 +591,6 @@ process (clock)
 begin
 
 if (clock'event and clock = '1') then
-
 --PIPELINED VALUE 
 --IFID 
 IFIDaddress <= address;
@@ -543,7 +667,5 @@ shamnt <= IFIDinstruction(10 downto 6);
 immediate <= IFIDinstruction(15 downto 0);
 -- MIGHT NEED TO PUT WRITE ENABLE HERE LATER 
 -- AND JUMP ADDRESS HERE 
-
-cpuStall <= stall;
 
 end cpuPipeline_arch;

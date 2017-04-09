@@ -11,7 +11,6 @@ component cpuPipeline is
 port 
 (
 clk : in std_logic;
-stall : in std_logic;
 reset : in std_logic;
 four : INTEGER;
 
@@ -27,14 +26,12 @@ signal rst : std_logic := '0';
 signal fourInt : INTEGER := 4;
 signal writeToRegisterFile : std_logic := '0';
 signal writeToMemoryFile : std_logic := '0';
-signal cpuStall :std_logic := '0';
 begin 
 
 pipeline : cpuPipeline
 
 port map(
 clk => clk,
-stall => cpuStall,
 reset => rst,
 four => fourInt,
 writeToMemoryFile => writeToRegisterFile,
@@ -53,15 +50,6 @@ test_process : process
     BEGIN
 	
 	report "STARTING SIMULATION \n";
-	
-		wait for 1 * clk_period;
-		cpuStall <= '1';
-		wait for 10 * clk_period;
-		cpuStall <= '0';
-		wait for 10 * clk_period;
-		--cpuStall <= '1'; 
-		--wait for 10 * clk_period;
-		--cpuStall <= '0';
 		
 		wait for  10000* clk_period;
 		writeToRegisterFile <= '1';

@@ -6,10 +6,9 @@ use ieee.std_logic_textio.all;
 
 ENTITY instructionFetchStage IS
 
---MIGHT NEED TO MODIFY IF STAGE TO THE WHOLE CPU PIPELINE
-
 port(
 	clk : in std_logic;
+	globalClk : in std_logic;
 	muxInput0 : in std_logic_vector(31 downto 0);
 	selectInputs : in std_logic;
 	four : in INTEGER;
@@ -17,31 +16,53 @@ port(
 	pcStall : IN STD_LOGIC := '0';
 	
 	selectOutput : out std_logic_vector(31 downto 0);
-	instructionMemoryOutput : out std_logic_vector(31 downto 0)
+	instructionMemoryOutput : out std_logic_vector(31 downto 0);
+	
+	waitrequest: out std_logic;
+	
+	-- CACHE port 
+	Caddr : out integer range 0 to 1024-1;
+	Cread : out std_logic;
+	Creaddata : in std_logic_vector (31 downto 0);
+	Cwrite : out std_logic;
+	Cwritedata : out std_logic_vector (31 downto 0);
+	Cwaitrequest : in std_logic
+	
+	
 	);
 
 END instructionFetchStage;
 
 architecture instructionFetchStage_arch of instructionFetchStage is
 
---INSTRUCTION MEMORY 
-component instructionMemory IS
-	GENERIC(
-	-- might need to change it 
-		ram_size : INTEGER := 1024;
-		mem_delay : time := 1 ns;
-		clock_period : time := 1 ns
-	);
-	PORT (
-		clock: IN STD_LOGIC;
-		writedata: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-		address: IN INTEGER RANGE 0 TO ram_size-1;
-		memwrite: IN STD_LOGIC;
-		memread: IN STD_LOGIC;
-		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-		waitrequest: OUT STD_LOGIC
-	);
-END component;
+--CACHE 
+
+component cache is 
+
+generic(
+	ram_size : INTEGER := 8192
+);
+port(
+
+	clock : in std_logic;
+	reset : in std_logic;
+
+	-- Avalon interface --
+	s_addr : in std_logic_vector (31 downto 0);
+	s_read : in std_logic;
+	s_readdata : out std_logic_vector (31 downto 0);
+	s_write : in std_logic;
+	s_writedata : in std_logic_vector (31 downto 0);
+	s_waitrequest : out std_logic;
+
+	m_addr : out integer range 0 to ram_size-1;
+	m_read : out std_logic;
+	m_readdata : in std_logic_vector (31 downto 0);
+	m_write : out std_logic;
+	m_writedata : out std_logic_vector (31 downto 0);
+	m_waitrequest : in std_logic
+);
+end component;
 
 --PC 
 
@@ -83,7 +104,6 @@ end component;
 	signal memwrite: STD_LOGIC := '0';
     signal memread: STD_LOGIC := '1';
     signal readdata: STD_LOGIC_VECTOR (31 DOWNTO 0);
-    signal waitrequest: STD_LOGIC;
 	
 	
 	signal pcOutput : STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -98,7 +118,7 @@ end component;
 begin
 
 selectOutput <= internal_selectOutput;
-address <= to_integer(unsigned(addOutput(9 downto 0)))/4;
+--address <= to_integer(unsigned(addOutput(9 downto 0)))/4;
 
 
 pcCounter : pc 
@@ -140,21 +160,26 @@ input1 => pcOutput,
 selectInput => pcStall,
 selectOutput => pcInput
 );
-	 
-iMem : instructionMemory
-	GENERIC MAP(
-            ram_size => 1024
-                )
-                PORT MAP(
-                    clk,
-                    writedata,
-                    address,
-                    memwrite,
-                    memread,
-                    memoryValue,
-                    waitrequest
-                );
-				
-	
+
+memCache : cache
+port map(
+	clock => globalClk,
+	reset => rst,
+
+	s_addr => pcOutput,
+	s_read => memread,
+	s_readdata => memoryValue,
+	s_write => memwrite,
+	s_writedata => writedata,
+	s_waitrequest => waitrequest,
+
+	m_addr =>caddr,
+	m_read =>cread,
+	m_readdata => creaddata,
+	m_write => cwrite,
+	m_writedata => cwritedata,
+	m_waitrequest => cwaitrequest
+);
+
 				
 end instructionFetchStage_arch;
