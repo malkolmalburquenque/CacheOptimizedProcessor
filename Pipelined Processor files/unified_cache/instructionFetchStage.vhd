@@ -18,51 +18,19 @@ port(
 	selectOutput : out std_logic_vector(31 downto 0);
 	instructionMemoryOutput : out std_logic_vector(31 downto 0);
 	
-	waitrequest: out std_logic;
-	
-	-- CACHE port 
-	Caddr : out integer range 0 to 1024-1;
-	Cread : out std_logic;
-	Creaddata : in std_logic_vector (31 downto 0);
-	Cwrite : out std_logic;
-	Cwritedata : out std_logic_vector (31 downto 0);
-	Cwaitrequest : in std_logic
-	
+	-- UNIFIED CACHE OUTPUT
+	pcOutput : out std_logic_vector(31 downto 0);
+	readOutput : out std_logic;
+	memoryValue : in std_logic_vector(31 downto 0);
+	writeOutput : out std_logic;
+	writeDataOutput : out std_logic_vector(31 downto 0);
+	waitRequestInput : in std_logic
 	
 	);
 
 END instructionFetchStage;
 
 architecture instructionFetchStage_arch of instructionFetchStage is
-
---CACHE 
-
-component cache is 
-
-generic(
-	ram_size : INTEGER := 8192
-);
-port(
-
-	clock : in std_logic;
-	reset : in std_logic;
-
-	-- Avalon interface --
-	s_addr : in std_logic_vector (31 downto 0);
-	s_read : in std_logic;
-	s_readdata : out std_logic_vector (31 downto 0);
-	s_write : in std_logic;
-	s_writedata : in std_logic_vector (31 downto 0);
-	s_waitrequest : out std_logic;
-
-	m_addr : out integer range 0 to ram_size-1;
-	m_read : out std_logic;
-	m_readdata : in std_logic_vector (31 downto 0);
-	m_write : out std_logic;
-	m_writedata : out std_logic_vector (31 downto 0);
-	m_waitrequest : in std_logic
-);
-end component;
 
 --PC 
 
@@ -104,15 +72,14 @@ end component;
 	signal memwrite: STD_LOGIC := '0';
     signal memread: STD_LOGIC;
     signal readdata: STD_LOGIC_VECTOR (31 DOWNTO 0);
-	signal waitrequestSig: STD_LOGIC;
 	
-	signal pcOutput : STD_LOGIC_VECTOR(31 DOWNTO 0);
+	signal pcOut : STD_LOGIC_VECTOR(31 DOWNTO 0);
 	signal internal_selectOutput : STD_LOGIC_VECTOR(31 DOWNTO 0);
 	signal addOutput : STD_LOGIC_VECTOR(31 DOWNTO 0);
 		
 	--SIGNAL FOR STALLS 
 	signal stallValue : STD_LOGIC_VECTOR(31 DOWNTO 0) := "00000000000000000000000000100000";
-	signal memoryValue : STD_LOGIC_VECTOR(31 DOWNTO 0);
+	--signal memoryValue : STD_LOGIC_VECTOR(31 DOWNTO 0);
 	signal pcInput : STD_LOGIC_VECTOR(31 DOWNTO 0);
 	
 begin
@@ -120,12 +87,11 @@ begin
 selectOutput <= internal_selectOutput;
 --address <= to_integer(unsigned(addOutput(9 downto 0)))/4;
 
-
 pcCounter : pc 
 port map(
 	clk => clk,
 	reset => rst,
-	counterOutput => pcOutput,
+	counterOutput => pcOut,
 	counterInput => pcInput
 );
 
@@ -133,7 +99,7 @@ add : adder
 port map(
 	 
 	 plusFour => four,
-	 counterOutput => pcOutput,
+	 counterOutput => pcOut,
 	 adderOutput => addOutput
 );
 
@@ -156,35 +122,15 @@ selectOutput => instructionMemoryOutput
 pcMux : mux 
 port map (
 input0 => internal_selectOutput,
-input1 => pcOutput,
+input1 => pcOut,
 selectInput => pcStall,
 selectOutput => pcInput
 );
 
-memCache : cache
-port map(
-	clock => globalClk,
-	reset => rst,
-
-	s_addr => pcOutput,
-	s_read => memread,
-	s_readdata => memoryValue,
-	s_write => memwrite,
-	s_writedata => writedata,
-	s_waitrequest => waitrequestSig,
-
-	m_addr =>caddr,
-	m_read =>cread,
-	m_readdata => creaddata,
-	m_write => cwrite,
-	m_writedata => cwritedata,
-	m_waitrequest => cwaitrequest
-);
-
-process (waitrequestSig,clk)
+process (waitRequestInput,clk)
 begin
 	
-	if (waitrequestSig'event and waitrequestSig = '1') then
+	if (waitRequestInput'event and waitRequestInput = '1') then
 		memread <= '0';
 	end if;
 
@@ -194,6 +140,10 @@ begin
 	
 end process;
 
-waitrequest <= waitrequestSig;
+-- UNIFIED CACHE MODIFICATION
+readOutput <= memread;
+writeOutput <= memwrite;
+writeDataOutput <= writedata;
+pcOutput <= pcOut;
 	
 end instructionFetchStage_arch;

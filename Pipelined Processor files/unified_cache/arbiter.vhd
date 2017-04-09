@@ -11,21 +11,21 @@ generic(
 );
 port(
 	-- Avalon interface --
-	s_addr_data : in integer range 0 to ram_size-1;
+	s_addr_data : in std_logic_vector (31 downto 0);
 	s_read_data : in std_logic;
 	s_readdata_data : out std_logic_vector (31 downto 0);
 	s_write_data : in std_logic;
 	s_writedata_data : in std_logic_vector (31 downto 0);
 	s_waitrequest_data : out std_logic:= '1';
 	
-	s_addr_instruct : in integer range 0 to ram_size-1;
+	s_addr_instruct : in std_logic_vector (31 downto 0);
 	s_read_instruct : in std_logic;
 	s_readdata_instruct : out std_logic_vector (31 downto 0);
 	s_write_instruct : in std_logic;
 	s_writedata_instruct : in std_logic_vector (31 downto 0);
 	s_waitrequest_instruct : out std_logic:='1';
 
-	m_addr : out integer range 0 to ram_size-1;
+	m_addr : out std_logic_vector (31 downto 0);
 	m_read : out std_logic;
 	m_readdata : in std_logic_vector (31 downto 0);
 	m_write : out std_logic;
@@ -85,13 +85,13 @@ begin
 		if control = '0' then
 			m_write <= s_write_data;
 			m_read <= s_read_data;
-			m_addr <= s_addr_data + 1024; 
+			m_addr <= std_logic_vector(to_unsigned(to_integer(unsigned(s_addr_data)) +1024, m_addr'length)); --+1024
 			s_readdata_data <= m_readdata;
 			m_writedata <= s_writedata_data;
 		elsif control = '1' then
 			m_write <= s_write_instruct;
 			m_read <= s_read_instruct;
-			m_addr <= s_addr_instruct/4;
+			m_addr <= "00" & s_addr_instruct(31 downto 2); --/4
 			s_readdata_instruct <= m_readdata;
 			m_writedata <= s_writedata_instruct;
 		end if;

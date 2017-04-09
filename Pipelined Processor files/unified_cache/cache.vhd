@@ -1,4 +1,4 @@
---This is a 16 bit cache implementation
+--This is a 32 bit cache implementation
 --Consider how it will run with a clock
 
 library ieee;
@@ -43,7 +43,7 @@ signal next_state : state_type;
 
 
 -- Cache struct [16]
-type cache_def is array (0 to 15) of std_logic_vector (154 downto 0);
+type cache_def is array (0 to 31) of std_logic_vector (154 downto 0);
 signal cache2 : cache_def;
 --1 bit valid
 --1 bit dirty
@@ -67,7 +67,7 @@ process (s_read, s_write, m_waitrequest, state)
 	variable count : INTEGER := 0;
 	variable addr : std_logic_vector (12 downto 0);
 begin
-	index := to_integer(unsigned(s_addr(5 downto 2)));
+	index := to_integer(unsigned(s_addr(6 downto 2)));
 	Offset := to_integer(unsigned(s_addr(1 downto 0))) + 1;
 	off :=  Offset - 1;
 
@@ -85,7 +85,7 @@ begin
 			
 		when r =>
 			-- if valid and tags match
-			if cache2(index)(154) = '1' and cache2(index)(152 downto 127) = s_addr (31 downto 6) then --HIT     address = tag of cache index
+			if cache2(index)(154) = '1' and cache2(index)(152 downto 128) = s_addr (31 downto 7) then --HIT     address = tag of cache index
 				s_readdata <= cache2(index)(127 downto 0) ((Offset * 32) -1 downto 32*off);  -- output 32 bits of data block depending on offset of last 2 bits of address)
 				s_waitrequest <= '0';
 				next_state <= start;
@@ -99,7 +99,7 @@ begin
 				
 		when r_memwrite =>
 			if count < 4 and m_waitrequest = '1' and next_state /= r_memread then -- EVICT
-				addr := cache2(index)(133 downto 127) & s_addr (5 downto 0);   -- create new address with last 8 bits of tag  + 7 bits of address
+				addr := cache2(index)(133 downto 128) & s_addr (6 downto 0);   -- create new address with last 8 bits of tag  + 7 bits of address
 				m_addr <= to_integer(unsigned (addr));	-- set the address to memory
 				m_write <= '1'; -- write into memory
 				m_read <= '0';
@@ -133,7 +133,7 @@ begin
 			elsif count = 4 then -- PLACE DATA READ FROM MEM ONTO OUTPUT
 				cache2(index)(127 downto 0)((Offset * 32) -1 downto 32* off) <= m_readdata;
 				s_readdata <= m_readdata;
-				cache2(index)(152 downto 127) <= s_addr (31 downto 6); --Tag
+				cache2(index)(152 downto 128) <= s_addr (31 downto 7); --Tag
 				cache2(index)(154) <= '1'; --Valid
 				cache2(index)(153) <= '0'; --Clean
 				m_read <= '0';
@@ -152,7 +152,7 @@ begin
 				cache2(index)(153) <= '1'; -- DIRTY	
 				cache2(index)(154) <= '1'; --Valid
 				cache2(index)(127 downto 0)((Offset * 32) -1 downto 32*off) <= s_writedata; --DATA
-				cache2(index)(152 downto 127) <= s_addr (31 downto 6); --TAG
+				cache2(index)(152 downto 128) <= s_addr (31 downto 7); --TAG
 				s_waitrequest <= '0';
 				next_state <= start;
 					
@@ -160,7 +160,7 @@ begin
 		
 		when w_memwrite => 	
 			if count < 4 and m_waitrequest = '1' then -- EVICT
-				addr := cache2(index)(133 downto 127) & s_addr (5 downto 0);
+				addr := cache2(index)(133 downto 128) & s_addr (6 downto 0); 
 				m_addr <= to_integer(unsigned (addr)) ;
 				m_write <= '1';
 				m_read <= '0';
@@ -169,7 +169,7 @@ begin
 				next_state <= w_memwrite;
 			elsif count = 4 then --WRITE TO CACHE AND SET CONTROL BITS
 				cache2(index)(127 downto 0)((Offset * 32) -1 downto 32*off) <= s_writedata (31 downto 0); --DATA  
-				cache2(index)(152 downto 127) <= s_addr (31 downto 6); --TAG
+				cache2(index)(152 downto 128) <= s_addr (31 downto 7); --TAG
 				cache2(index)(153) <= '1'; --DIRTY
 				cache2(index)(154) <= '1'; --Valid
 				count := 0;
