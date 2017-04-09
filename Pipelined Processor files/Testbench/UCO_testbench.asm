@@ -19,9 +19,7 @@ add $0, $0, $0
 add $0, $0, $0
 j Loop
 
-Loop: 
-
-addi $1, $1, 1 
+Loop: addi $1, $1, 1 
 add $0, $0, $0
 add $0, $0, $0
 add $0, $0, $0
@@ -144,6 +142,5 @@ add $0, $0, $0
 beq $31, $4, End
 j Loop
 
-End:
-add $0, $0, $0
+End: add $0, $0, $0
 
