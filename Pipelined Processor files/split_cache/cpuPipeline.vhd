@@ -322,7 +322,7 @@ signal m_write_data : std_logic;
 signal m_writedata_data : std_logic_vector (31 downto 0);
 signal m_waitrequest_data : std_logic;
        
-signal m_addr_instruct : integer range 0 to 8192-1;
+signal m_addr_instruct : integer range 0 to 1024-1;
 signal m_read_instruct : std_logic;
 signal m_readdata_instruct : std_logic_vector (31 downto 0);
 signal m_write_instruct : std_logic;
