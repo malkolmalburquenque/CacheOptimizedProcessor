@@ -102,9 +102,9 @@ end component;
     signal address: INTEGER RANGE 0 TO 1024-1;
     
 	signal memwrite: STD_LOGIC := '0';
-    signal memread: STD_LOGIC := '1';
+    signal memread: STD_LOGIC;
     signal readdata: STD_LOGIC_VECTOR (31 DOWNTO 0);
-	
+	signal waitrequestSig: STD_LOGIC;
 	
 	signal pcOutput : STD_LOGIC_VECTOR(31 DOWNTO 0);
 	signal internal_selectOutput : STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -171,7 +171,7 @@ port map(
 	s_readdata => memoryValue,
 	s_write => memwrite,
 	s_writedata => writedata,
-	s_waitrequest => waitrequest,
+	s_waitrequest => waitrequestSig,
 
 	m_addr =>caddr,
 	m_read =>cread,
@@ -181,5 +181,19 @@ port map(
 	m_waitrequest => cwaitrequest
 );
 
-				
+process (waitrequestSig,clk)
+begin
+	
+	if (waitrequestSig'event and waitrequestSig = '1') then
+		memread <= '0';
+	end if;
+
+	if (clk'event and clk = '1') then
+		memread <= '1';
+	end if;
+	
+end process;
+
+waitrequest <= waitrequestSig;
+	
 end instructionFetchStage_arch;

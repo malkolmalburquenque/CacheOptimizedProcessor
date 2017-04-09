@@ -12,8 +12,9 @@ end pc;
 
 architecture pc_arch of pc is
 
- 
+signal test :std_logic ; 
 begin
+
 
 process (clk,reset)
 begin
@@ -22,7 +23,7 @@ begin
 		counterOutput <= x"00000000";
 	elsif (clk'event and clk = '1') then 	
 		counterOutput <= counterInput;
-
+		test <= '1';
 	end if;
 	
 	

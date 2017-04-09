@@ -245,7 +245,7 @@ signal EXMEMStructuralStall : std_logic;
 signal structuralStall : std_logic;
 signal pcStall : std_logic;
 signal cpuStall : std_logic := '0';
-signal stopStall : std_logic;
+signal stopStall : std_logic_vector (1 downto 0) := "00";
 
 -- TEST SIGNALS 
 signal muxInput : STD_LOGIC_VECTOR(31 downto 0) := "00000000000000000000000000000000";
@@ -546,29 +546,35 @@ clock <= '0';
 end if;
 end process;
 
-process (IFwaitrequest, MEMwaitrequest, clock)
+process (IFwaitrequest, MEMwaitrequest, EXMEMMemWriteO ,EXMEMMemReadO,clock)
 begin
 	if cpuStall = '1' then
 		if (IFwaitrequest'event and IFwaitrequest = '1') then
-			if (stopStall = '1') then
+			if (stopStall = "10") then
 				cpuStall <= '0';
+				stopStall <= "00";
 			else
-				stopStall <= '1';
+				stopStall <= "01";
 			end if;
 		end if;
 		if (EXMEMMemWriteO = '1' or EXMEMMemReadO = '1')then
+			if (EXMEMMemWriteO'event or EXMEMMemReadO'event) then
+				stopStall (1) <= '0';
+			end if;
 			if MEMwaitrequest'event and MEMwaitrequest = '1' then
-				if (stopStall = '1') then
+				if (stopStall = "01") then
 					cpuStall <= '0';
+					stopStall <= "00";
 				else
-					stopStall <= '1';
+					stopStall <= "10";
 				end if;
 			end if;
 		else
-			if (stopStall = '1') then
+			if (stopStall = "01") then
 				cpuStall <= '0';
+				stopStall <= "00";
 			else
-				stopStall <= '1';
+				stopStall <= "10";
 			end if;
 		end if;
 	else

@@ -63,7 +63,7 @@ begin
 end process;
 
 
-process (write_addr_in , ctrl_memtoreg_in, ctrl_regwrite_in, alu_in)
+process (write_addr_in , ctrl_memtoreg_in, ctrl_regwrite_in, alu_in,waitrequest)
 begin	
 	--Propogate signals
 	write_addr_next <= write_addr_in;
@@ -88,15 +88,11 @@ begin
 		memread <= '1';
 	end if;
 	
-	
-end process;
-
-process (waitrequest)
-begin
 	if (waitrequest'event and waitrequest = '1') then
 		memwrite <= '0';
 		memread <= '0';
 	end if;
+	
 end process;
 
 mem_data_next <= readdata;

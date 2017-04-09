@@ -91,7 +91,7 @@ begin
 		elsif control = '1' then
 			m_write <= s_write_instruct;
 			m_read <= s_read_instruct;
-			m_addr <= s_addr_instruct;
+			m_addr <= s_addr_instruct/4;
 			s_readdata_instruct <= m_readdata;
 			m_writedata <= s_writedata_instruct;
 		end if;
