@@ -193,7 +193,7 @@ begin
 		ALU2src <= '1';
 		MemRead <= '0';
 		MemWrite <= '0';
-		RegWrite <= '1';
+		RegWrite <= '0';
 		MemToReg <= '0';
 		ALUOp <= "00100";
 		RType <= '1';
@@ -207,7 +207,7 @@ begin
 		ALU2src <= '1';
 		MemRead <= '0';
 		MemWrite <= '0';
-		RegWrite <= '1';
+		RegWrite <= '0';
 		MemToReg <= '0';
 		ALUOp <= "00011";
 		RType <= '1';
@@ -229,7 +229,7 @@ begin
 		structuralStall <= '0';
 		
 		-- TO DO HIGH OUTPUT 14
-		elsif funct = "001010" then
+		elsif funct = "010000" then
 		ALU1src <= '0';
 		ALU2src <= '1';
 		MemRead <= '0';
@@ -243,7 +243,7 @@ begin
 		structuralStall <= '0';
 		
 		--TO DO LOW  OUTPUT 15
-		elsif funct = "001100" then 
+		elsif funct = "010010" then 
 		ALU1src <= '0';
 		ALU2src <= '1';
 		MemRead <= '0';
