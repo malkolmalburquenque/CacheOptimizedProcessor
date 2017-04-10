@@ -238,7 +238,7 @@ begin
 		MemToReg <= '0';
 		ALUOp <= "01110";
 		RType <= '1';
-		Shift <= '1';
+		Shift <= '0';
 		JType <= '0';
 		structuralStall <= '0';
 		

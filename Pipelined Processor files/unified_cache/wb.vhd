@@ -18,7 +18,7 @@ end wb;
 architecture behavioral of wb is
 
 begin
-process(alu_in, mem_in, ctrl_memtoreg_in, ctrl_regwrite_in)
+process(alu_in, mem_in, ctrl_memtoreg_in, ctrl_regwrite_in,write_addr_in)
 begin
 	write_addr_out <= write_addr_in;
 	ctrl_regwrite_out <= ctrl_regwrite_in;
