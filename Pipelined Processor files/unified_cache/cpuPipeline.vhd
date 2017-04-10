@@ -502,7 +502,7 @@ port map (
 
 arb: arbiter
 port map (
-	s_addr_data => MEMwritedata, 
+	s_addr_data => MEMaddress, 
 	s_read_data => MEMmemread,
 	s_readdata_data => MEMreaddata,
 	s_write_data => MEMmemwrite, 
