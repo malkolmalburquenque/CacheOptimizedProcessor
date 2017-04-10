@@ -22,6 +22,14 @@ addi $4, $0, 1000
 add $0, $0, $0
 add $0, $0, $0
 add $0, $0, $0
+addi $5, $0, -1 #Reset R5 and R6
+add $0, $0, $0
+add $0, $0, $0
+add $0, $0, $0
+addi $6, $0, -1 
+add $0, $0, $0
+add $0, $0, $0
+add $0, $0, $0
 firstLoop: bne $2, $4, testPrime
 add $0, $0, $0
 add $0, $0, $0
@@ -36,6 +44,14 @@ add $0, $0, $0
 add $0, $0, $0
 add $0, $0, $0
 addi $2, $2, 1
+add $0, $0, $0
+add $0, $0, $0
+add $0, $0, $0
+addi $5, $0, -1 #Reset R5 and R6
+add $0, $0, $0
+add $0, $0, $0
+add $0, $0, $0
+addi $6, $0, -1
 add $0, $0, $0
 add $0, $0, $0
 add $0, $0, $0
@@ -65,6 +81,10 @@ add $0, $0, $0
 add $0, $0, $0
 add $0, $0, $0
 mflo $5 #R6 = remainder
+add $0, $0, $0
+add $0, $0, $0
+add $0, $0, $0
+beq $3, $2, isPrime
 add $0, $0, $0
 add $0, $0, $0
 add $0, $0, $0

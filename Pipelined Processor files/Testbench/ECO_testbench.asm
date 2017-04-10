@@ -1,4 +1,4 @@
-# The purpose of this testbench is to demonstrate the equivalent or similar optimization of both the Unified 
+# The purpose of this testbench is to demonstrate the equivalent or similar optimization of both the Unified
 # and Split caches over the non-optimized cache implementation
 
 
@@ -9,6 +9,9 @@
 
 
 #Target: looped memory accesses
+add $0, $0, $0
+add $0, $0, $0
+add $0, $0, $0
 
 addi $10, $0, 6 	#R10 initialized to '6'
 add $0, $0, $0
@@ -32,7 +35,10 @@ add $0, $0, $0
 add $0, $0, $0
 j Loop
 
-Loop: addi $1, $1, 1 	#R1 Final Value: 6
+Loop: add $0, $0, $0
+add $0, $0, $0
+add $0, $0, $0
+addi $1, $1, 1 	#R1 Final Value: 6
 add $0, $0, $0
 add $0, $0, $0
 add $0, $0, $0

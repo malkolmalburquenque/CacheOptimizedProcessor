@@ -8,18 +8,23 @@
 
 
 #Target all instruction calls, no data calls
-
-addi $1, $0, 1 
 add $0, $0, $0
 add $0, $0, $0
 add $0, $0, $0
-addi $31, $0, 8 
+addi $1, $0, 1
+add $0, $0, $0
+add $0, $0, $0
+add $0, $0, $0
+addi $31, $0, 8
 add $0, $0, $0
 add $0, $0, $0
 add $0, $0, $0
 j Loop
 
-Loop: addi $1, $1, 1  # R1 final value: 5
+Loop: add $0, $0, $0
+add $0, $0, $0
+add $0, $0, $0
+addi $1, $1, 1  # R1 final value: 5
 add $0, $0, $0
 add $0, $0, $0
 add $0, $0, $0
@@ -140,7 +145,9 @@ add $0, $0, $0
 add $0, $0, $0
 add $0, $0, $0
 beq $31, $4, End # R31 final value: 8
+add $0, $0, $0
+add $0, $0, $0
+add $0, $0, $0
 j Loop
 
 End: add $0, $0, $0
-
