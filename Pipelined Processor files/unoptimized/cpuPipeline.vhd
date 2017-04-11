@@ -30,7 +30,13 @@ component instructionFetchStage IS
 		selectOutput : out std_logic_vector(31 downto 0);
 		instructionMemoryOutput : out std_logic_vector(31 downto 0);
 		
-		waitrequest: out std_logic
+		-- UNIFIED CACHE port 
+		pcOutput : out integer range 0 to 1024-1;
+		readOutput : out std_logic;
+		memoryValue : in std_logic_vector(31 downto 0);
+		writeOutput : out std_logic;
+		writeDataOutput : out std_logic_vector(31 downto 0);
+		waitRequestInput : in std_logic
 
 	);
 		
@@ -89,23 +95,6 @@ port(
 	 selectInput : in std_logic;
 	 selectOutput : out std_logic_vector(31 downto 0)
 	 );
-	 	
-	
-end component;
-
-component alu is
- Port ( input_a : in STD_LOGIC_VECTOR (31 downto 0);
- input_b : in STD_LOGIC_VECTOR (31 downto 0);
- SEL : in STD_LOGIC_VECTOR (4 downto 0);
- out_alu : out STD_LOGIC_VECTOR(31 downto 0));
-end component;
-
-component zero is
-port (input_a : in std_logic_vector (31 downto 0);
-	input_b : in std_logic_vector (31 downto 0);
-	optype : in std_logic_vector (4 downto 0);
-	result: out std_logic
-  );
 end component;
 
 --MEMORY OBJ FOR MEM STAGE
@@ -127,6 +116,41 @@ COMPONENT memory IS
 		waitrequest: OUT STD_LOGIC
 	);
 END COMPONENT;
+
+component instructionMemory IS
+	GENERIC(
+	-- might need to change it 
+		ram_size : INTEGER := 1024;
+		mem_delay : time := 10 ns;
+		clock_period : time := 1 ns
+	);
+	PORT (
+		clock: IN STD_LOGIC;
+		writedata: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
+		address: IN INTEGER RANGE 0 TO ram_size-1;
+		memwrite: IN STD_LOGIC;
+		memread: IN STD_LOGIC;
+		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
+		waitrequest: OUT STD_LOGIC
+	);
+END component;
+
+
+component alu is
+ Port ( input_a : in STD_LOGIC_VECTOR (31 downto 0);
+ input_b : in STD_LOGIC_VECTOR (31 downto 0);
+ SEL : in STD_LOGIC_VECTOR (4 downto 0);
+ out_alu : out STD_LOGIC_VECTOR(31 downto 0));
+end component;
+
+component zero is
+port (input_a : in std_logic_vector (31 downto 0);
+	input_b : in std_logic_vector (31 downto 0);
+	optype : in std_logic_vector (4 downto 0);
+	result: out std_logic
+  );
+end component;
+
 
 --MEM STAGE
 component mem is  
@@ -150,7 +174,7 @@ port (clk: in std_logic;
 	
 	--Memory signals
 	writedata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-	address: OUT INTEGER;
+	address: OUT Integer range 0 to 8192-1;
 	memwrite: OUT STD_LOGIC := '0';
 	memread: OUT STD_LOGIC := '0';
 	readdata: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
@@ -188,7 +212,7 @@ signal stopStall : std_logic_vector (1 downto 0) := "00";
 signal muxInput : STD_LOGIC_VECTOR(31 downto 0) := "00000000000000000000000000000000";
 signal selectInput : std_logic := '1';
 signal fourInt : INTEGER := 4;
-signal IFwaitrequest: std_logic;
+signal controlSig: std_logic;
 
 -- PIPELINE IFID
 --address goes to both IFID and IDEX
@@ -245,11 +269,21 @@ signal memtoReg : std_logic;
 signal regWrite : std_logic;
 
 signal	MEMwritedata : std_logic_vector(31 downto 0);
-signal	MEMaddress : INTEGER;
+signal	MEMaddress : integer range 0 to 8192-1;
 signal	MEMmemwrite : STD_LOGIC;
 signal	MEMmemread  : STD_LOGIC;
 signal	MEMreaddata : std_logic_vector(31 downto 0);
 signal	MEMwaitrequest : STD_LOGIC;
+
+signal IFaddr : integer range 0 to 1024-1;
+signal IFread : std_logic;
+signal IFreaddata : std_logic_vector (31 downto 0);
+signal IFwrite : std_logic;
+signal IFwritedata : std_logic_vector (31 downto 0);
+signal IFwaitrequest : std_logic; 
+
+signal m_writeToText : std_logic := '0';
+
 
 begin
 
@@ -265,7 +299,12 @@ port map(
 	selectOutput => address,
 	instructionMemoryOutput => instruction,
 	
-	waitrequest => IFwaitrequest
+	pcOutput => IFaddr,
+	readOutput => IFread,
+	memoryValue => IFreaddata,
+	writeOutput => IFwrite,
+	writeDataOutput => IFwritedata,
+	waitRequestInput => IFwaitrequest
 	
 );
 -- DECODE STAGE 
@@ -372,7 +411,7 @@ port map (
 	waitrequest => MEMwaitrequest
 );
 
-memMemory: memory
+DMemory: memory
 port map (
 	clock => clk,
 	writedata => MEMwritedata,
@@ -383,6 +422,21 @@ port map (
 	readdata => MEMreaddata,
 	waitrequest => MEMwaitrequest
 );
+
+IMem : instructionMemory
+GENERIC MAP(
+ram_size => 1024
+)
+PORT MAP(
+	clock => clk,
+	writedata => IFwritedata,
+	address => IFaddr,
+	memwrite => IFwrite,
+	memread => IFread,
+	readdata => IFreaddata,
+	waitrequest => IFwaitrequest
+);
+
 
 wbStage: wb
 port map (ctrl_memtoreg_in => memtoReg,
@@ -406,7 +460,7 @@ clock <= '0';
 end if;
 end process;
 
-process (IFwaitrequest, MEMwaitrequest, clock)
+process (IFwaitrequest, MEMwaitrequest, EXMEMMemWriteO ,EXMEMMemReadO,clock)
 begin
 	if cpuStall = '1' then
 		if (IFwaitrequest'event and IFwaitrequest = '1') then
@@ -418,6 +472,9 @@ begin
 			end if;
 		end if;
 		if (EXMEMMemWriteO = '1' or EXMEMMemReadO = '1')then
+			if (EXMEMMemWriteO'event or EXMEMMemReadO'event) then
+				stopStall (1) <= '0';
+			end if;
 			if MEMwaitrequest'event and MEMwaitrequest = '1' then
 				if (stopStall = "01") then
 					cpuStall <= '0';
