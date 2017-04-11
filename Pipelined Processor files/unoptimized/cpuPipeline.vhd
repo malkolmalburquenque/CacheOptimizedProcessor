@@ -463,6 +463,10 @@ end process;
 process (IFwaitrequest, MEMwaitrequest, EXMEMMemWriteO ,EXMEMMemReadO,clock)
 begin
 	if cpuStall = '1' then
+		if (IFwaitrequest'event and IFwaitrequest = '1' and MEMwaitrequest'event and MEMwaitrequest = '1')then
+			cpuStall <= '0';
+			stopStall <= "00";
+		end if;
 		if (IFwaitrequest'event and IFwaitrequest = '1') then
 			if (stopStall = "10") then
 				cpuStall <= '0';
