@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 entity mem is
 GENERIC(
 	ram_size : INTEGER := 8192; 
-	mem_delay : time := 120 ns;
+	mem_delay : time := 20 ns;
 	clock_period : time := 1 ns
 );
 port (clk: in std_logic;
