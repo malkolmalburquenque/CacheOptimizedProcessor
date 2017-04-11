@@ -8,7 +8,7 @@ use ieee.std_logic_textio.all;
 ENTITY memory IS
 	GENERIC(
 		ram_size : INTEGER := 8192;
-		mem_delay : time := 10 ns;
+		mem_delay : time := 20 ns;
 		clock_period : time := 1 ns
 	);
 	PORT (
