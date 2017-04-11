@@ -1,4 +1,4 @@
-#this program checks how many prime numbers there are less than 10000
+#this program checks how many prime numbers there are less than N
 
 #The following 3 lines are implemented repeatedly to avoid data hazard, as it has not been implemented
 add $0, $0, $0
@@ -18,7 +18,7 @@ addi $3, $0, 1 #R3 is our testing index
 add $0, $0, $0
 add $0, $0, $0
 add $0, $0, $0
-addi $4, $0, 1000
+addi $4, $0, 50 #N = 50
 add $0, $0, $0
 add $0, $0, $0
 add $0, $0, $0
@@ -26,7 +26,7 @@ addi $5, $0, -1 #Reset R5 and R6
 add $0, $0, $0
 add $0, $0, $0
 add $0, $0, $0
-addi $6, $0, -1 
+addi $6, $0, -1
 add $0, $0, $0
 add $0, $0, $0
 add $0, $0, $0
