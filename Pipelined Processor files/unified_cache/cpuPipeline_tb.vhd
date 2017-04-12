@@ -51,7 +51,7 @@ test_process : process
 	
 	report "STARTING SIMULATION \n";
 		
-		wait for  10000* clk_period;
+		wait for  210000 *clk_period;
 		writeToRegisterFile <= '1';
 		writeToMemoryFile <= '1';
 		

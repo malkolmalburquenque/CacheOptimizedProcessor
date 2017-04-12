@@ -494,7 +494,7 @@ port map (
     address => m_addr,
     memwrite => m_write,
     memread => m_read,
-    writeToText => m_writeToText,
+    writeToText => writeToMemoryFile,
 	readdata => m_readdata,
     waitrequest => m_waitrequest,
 	control => controlSig

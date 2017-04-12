@@ -58,6 +58,25 @@ BEGIN
 			
 		end if;
 		file_close(f);
+		
+		
+		process(writeToText)
+			file memoryFile : text open write_mode is "memory.txt";
+			variable outLine : line;	
+			variable rowLine : integer := 0;
+
+			begin
+			if writeToText = '1' then
+			
+			while (rowLine < 8192) loop 
+			
+				write(outLine, ram_block(rowLine));
+				writeline(memoryFile, outLine);
+				rowLine := rowLine + 1;
+				
+			end loop;
+		end if;	
+		end process;
 
 		--This is the actual synthesizable SRAM block
 		IF (clock'event AND clock = '1') THEN

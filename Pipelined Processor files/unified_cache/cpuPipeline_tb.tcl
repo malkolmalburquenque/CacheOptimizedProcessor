@@ -65,5 +65,5 @@ force -deposit clk 0 0 ns, 1 0.5 ns -repeat 1 ns
 ;# Add the waves
 AddWaves
 
-;# Run for 10000 ns
-run 10000ns
+;# Run for 210000 ns
+run 210000ns
