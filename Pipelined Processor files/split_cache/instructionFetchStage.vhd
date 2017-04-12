@@ -99,7 +99,7 @@ end component;
 -- SET SIGNALS 
 	signal rst : std_logic := '0';
     signal writedata: std_logic_vector(31 downto 0);
-    signal address: INTEGER RANGE 0 TO 1024-1;
+    signal address: INTEGER;
     
 	signal memwrite: STD_LOGIC := '0';
     signal memread: STD_LOGIC;
@@ -173,7 +173,7 @@ port map(
 	s_writedata => writedata,
 	s_waitrequest => waitrequestSig,
 
-	m_addr =>caddr,
+	m_addr =>address,
 	m_read =>cread,
 	m_readdata => creaddata,
 	m_write => cwrite,
@@ -192,6 +192,15 @@ begin
 		memread <= '1';
 	end if;
 	
+end process;
+
+process (address)
+begin
+	if address >= 1024 then
+		caddr <= 0;
+	else
+		caddr <= address;
+	end if;
 end process;
 
 waitrequest <= waitrequestSig;
